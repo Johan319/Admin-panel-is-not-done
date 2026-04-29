@@ -17,7 +17,7 @@ screenGui.Parent = playerGui
 -- Main Frame
 local main = Instance.new("Frame")
 main.Name = "MainFrame"
-main.Size = UDim2.new(0, 560, 0, 340)
+main.Size = UDim2.new(0, 760, 0, 350)
 main.Position = UDim2.new(0.5, 0, 0.5, 0)
 main.AnchorPoint = Vector2.new(0.5, 0.5)
 main.BackgroundColor3 = Color3.fromRGB(14, 14, 20)
@@ -67,7 +67,7 @@ local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 32, 0, 32)
 closeBtn.Position = UDim2.new(1, -38, 0, 4)
 closeBtn.BackgroundTransparency = 1
-closeBtn.Text = "✕"
+closeBtn.Text = "x"
 closeBtn.TextColor3 = Color3.fromRGB(255, 90, 90)
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 18
@@ -132,7 +132,7 @@ end)
 
 -- Main Content Area
 local mainContent = Instance.new("Frame")
-mainContent.Size = UDim2.new(0.58, 0, 0.95, -55)
+mainContent.Size = UDim2.new(0.58, 0, 0.80, -55)
 mainContent.Position = UDim2.new(0.12, 0, 0, 75)
 mainContent.BackgroundTransparency = 1
 mainContent.Parent = main
