@@ -1,0 +1,353 @@
+--// Compact & Beautiful Client-Side Admin Panel - Fixed & Cleaner
+-- Press F2 to toggle (PC) | Tap top-left corner on mobile
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BeautifulAdminPanel"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+-- Main Frame
+local main = Instance.new("Frame")
+main.Name = "MainFrame"
+main.Size = UDim2.new(0, 560, 0, 340)
+main.Position = UDim2.new(0.5, 0, 0.5, 0)
+main.AnchorPoint = Vector2.new(0.5, 0.5)
+main.BackgroundColor3 = Color3.fromRGB(14, 14, 20)
+main.BorderSizePixel = 0
+main.Visible = false
+main.Parent = screenGui
+
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 14)
+
+local aspectRatio = Instance.new("UIAspectRatioConstraint")
+aspectRatio.AspectRatio = 560 / 340
+aspectRatio.Parent = main
+
+Instance.new("UIStroke", main).Color = Color3.fromRGB(40, 40, 52)
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 27)
+titleBar.Parent = main
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 14)
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(0.5, 0, 1, 0)
+titleLabel.Position = UDim2.new(0, 14, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Admin Panel"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 16
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = titleBar
+
+local greeting = Instance.new("TextLabel")
+greeting.Size = UDim2.new(0.16, 0, 1, 0)
+greeting.Position = UDim2.new(0.085, 0, 0, 38)
+greeting.BackgroundTransparency = 1
+greeting.Text = "Hello, " .. player.Name .. "!"
+greeting.TextColor3 = Color3.fromRGB(170, 180, 200)
+greeting.Font = Enum.Font.Gotham
+greeting.TextSize = 12
+greeting.TextXAlignment = Enum.TextXAlignment.Right
+greeting.Parent = titleBar
+
+-- Close Button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 32, 0, 32)
+closeBtn.Position = UDim2.new(1, -38, 0, 4)
+closeBtn.BackgroundTransparency = 1
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 90, 90)
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 18
+closeBtn.Parent = titleBar
+
+closeBtn.MouseButton1Click:Connect(function()
+	main.Visible = false
+end)
+
+
+-- ====================== DRAG FUNCTIONALITY ======================
+local dragging = false
+local dragInput
+local dragStart
+local startPos
+
+local function updateInput(input)
+	if dragging then
+		local delta = input.Position - dragStart
+		main.Position = UDim2.new(
+			startPos.X.Scale, 
+			startPos.X.Offset + delta.X, 
+			startPos.Y.Scale, 
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end
+
+-- Start dragging when clicking title bar
+titleBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+	   input.UserInputType == Enum.UserInputType.Touch then
+		
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+		
+		-- Stop dragging when mouse/finger is released
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+-- Track mouse movement while dragging
+titleBar.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or 
+	   input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+-- Update position while dragging
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		updateInput(input)
+	end
+end)
+-- ==============================================================
+
+-- Main Content Area
+local mainContent = Instance.new("Frame")
+mainContent.Size = UDim2.new(0.58, 0, 0.95, -55)
+mainContent.Position = UDim2.new(0.12, 0, 0, 75)
+mainContent.BackgroundTransparency = 1
+mainContent.Parent = main
+
+local pages = {}
+local homePage = Instance.new("Frame")
+homePage.Size = UDim2.new(1, 0, 1, 0)
+homePage.BackgroundTransparency = 1
+homePage.Visible = true
+homePage.Parent = mainContent
+pages.Home = homePage
+
+-- Improved Compact Stat Card Function
+local function createStatCard(posX, posY, emoji, titleText, initialValue, emojiColor)
+	local card = Instance.new("Frame")
+	card.Size = UDim2.new(0.48, 0, 0.47, 0)
+	card.Position = UDim2.new(posX, 0, posY, 0)
+	card.BackgroundColor3 = Color3.fromRGB(24, 24, 33)
+	card.Parent = homePage
+	
+	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 10)
+
+	-- Emoji
+	local emojiLabel = Instance.new("TextLabel")
+	emojiLabel.Size = UDim2.new(0, 26, 0, 26)
+	emojiLabel.Position = UDim2.new(0, 12, 0, 12)
+	emojiLabel.BackgroundTransparency = 1
+	emojiLabel.Text = emoji
+	emojiLabel.TextSize = 20
+	emojiLabel.TextColor3 = emojiColor
+	emojiLabel.Font = Enum.Font.GothamBold
+	emojiLabel.Parent = card
+
+	-- Title (Smaller text)
+	local titleLbl = Instance.new("TextLabel")
+	titleLbl.Size = UDim2.new(0.55, 0, 0.25, 0)
+	titleLbl.Position = UDim2.new(0.38, 0, 0.22, 0)
+	titleLbl.BackgroundTransparency = 1
+	titleLbl.Text = titleText
+	titleLbl.TextColor3 = Color3.fromRGB(180, 180, 195)
+	titleLbl.Font = Enum.Font.Gotham
+	titleLbl.TextSize = 10   -- Smaller title
+	titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+	titleLbl.Parent = card
+
+	-- Value (Smaller & cleaner)
+	local valueLbl = Instance.new("TextLabel")
+	valueLbl.Size = UDim2.new(0.55, 0, 0.48, 0)
+	valueLbl.Position = UDim2.new(0.38, 0, 0.48, 0)
+	valueLbl.BackgroundTransparency = 1
+	valueLbl.Text = initialValue
+	valueLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+	valueLbl.Font = Enum.Font.GothamBold
+	valueLbl.TextSize = 17   -- Slightly smaller value text
+	valueLbl.TextXAlignment = Enum.TextXAlignment.Left
+	valueLbl.Name = "ValueLabel"
+	valueLbl.Parent = card
+
+	return valueLbl
+end
+
+-- Create Stat Cards (Now with Server Uptime)
+local playersValueLabel = createStatCard(0, 0, "👥", "Players", "0", Color3.fromRGB(100, 190, 255))
+local adminsValueLabel   = createStatCard(0.52, 0, "👤", "Admins", "0", Color3.fromRGB(255, 210, 90))
+local uptimeValueLabel   = createStatCard(0, 0.52, "⏱", "Server Uptime", "0m", Color3.fromRGB(100, 230, 150))
+local locationValueLabel = createStatCard(0.52, 0.52, "📍", "Location", "Calabarzon, PH", Color3.fromRGB(120, 225, 140))
+
+-- Live Updates (Fixed + Server Uptime)
+local serverStartTime = tick()  -- This will act as server uptime (approximate)
+
+RunService.Heartbeat:Connect(function()
+	if not main.Visible then return end
+
+	-- Players
+	playersValueLabel.Text = tostring(#Players:GetPlayers())
+
+	-- Admins (Simple example - you can improve this logic later)
+	local adminCount = 0
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr:GetRankInGroup(1234567) >= 100 then -- Change group ID + rank as needed
+			adminCount += 1
+		end
+	end
+	adminsValueLabel.Text = tostring(adminCount)
+
+	-- Server Uptime
+	local uptimeSeconds = tick() - serverStartTime
+	local hours = math.floor(uptimeSeconds / 3600)
+	local minutes = math.floor((uptimeSeconds % 3600) / 60)
+	uptimeValueLabel.Text = (hours > 0 and hours .. "h " .. minutes .. "m") or (minutes .. "m")
+end)
+
+-- Quick Commands Panel (unchanged)
+local quickPanel = Instance.new("Frame")
+quickPanel.Size = UDim2.new(0.27, 0, 1, -50)
+quickPanel.Position = UDim2.new(0.73, 0, 0, 46)
+quickPanel.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+quickPanel.Parent = main
+Instance.new("UICorner", quickPanel).CornerRadius = UDim.new(0, 10)
+
+local cmdTitle = Instance.new("TextLabel")
+cmdTitle.Size = UDim2.new(1, 0, 0, 26)
+cmdTitle.BackgroundTransparency = 1
+cmdTitle.Text = "Quick Cmds"
+cmdTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+cmdTitle.Font = Enum.Font.GothamBold
+cmdTitle.TextSize = 13
+cmdTitle.Parent = quickPanel
+
+local commands = {"Fly", "Invisible", "Godmode", "Speed", "Jump"}
+
+for i, cmdName in ipairs(commands) do
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0.92, 0, 0, 30)
+	btn.Position = UDim2.new(0.04, 0, 0, 30 + (i-1)*35)
+	btn.BackgroundColor3 = Color3.fromRGB(32, 32, 42)
+	btn.Text = cmdName
+	btn.TextColor3 = Color3.fromRGB(230, 230, 240)
+	btn.Font = Enum.Font.Gotham
+	btn.TextSize = 12.5
+	btn.Parent = quickPanel
+	
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+	btn.MouseButton1Click:Connect(function()
+		print("Executed: " .. cmdName)
+		-- Add your actual command logic here later
+	end)
+
+	btn.MouseEnter:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(45, 45, 58)}):Play()
+	end)
+	btn.MouseLeave:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(32, 32, 42)}):Play()
+	end)
+end
+
+-- Sidebar (unchanged)
+local sidebar = Instance.new("Frame")
+sidebar.Size = UDim2.new(0, 46, 1, -50)
+sidebar.Position = UDim2.new(0, 8, 0, 46)
+sidebar.BackgroundColor3 = Color3.fromRGB(19, 19, 26)
+sidebar.Parent = main
+Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 12)
+
+local sidebarItems = {
+	{icon = "🏠", name = "Home", highlight = Color3.fromRGB(100, 180, 255)},
+	{icon = "👥", name = "Players"},
+	{icon = "👤", name = "Admins"},
+	{icon = "</>", name = "Cmds"},
+	{icon = "📜", name = "Logs"},
+	{icon = "⚙️", name = "Settings"}
+}
+
+local function switchPage(pageName)
+	for _, page in pairs(pages) do page.Visible = false end
+	if pages[pageName] then pages[pageName].Visible = true end
+end
+
+for i, item in ipairs(sidebarItems) do
+	local btnContainer = Instance.new("Frame")
+	btnContainer.Size = UDim2.new(1, 0, 0, 46)
+	btnContainer.Position = UDim2.new(0, 0, 0, (i-1)*50)
+	btnContainer.BackgroundTransparency = 1
+	btnContainer.Parent = sidebar
+
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, 0, 1, 0)
+	btn.BackgroundTransparency = 1
+	btn.Text = item.icon
+	btn.TextSize = 22
+	btn.TextColor3 = (item.name == "Home" and item.highlight) or Color3.fromRGB(140, 150, 170)
+	btn.Font = Enum.Font.GothamBold
+	btn.Parent = btnContainer
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 0, 10)
+	label.Position = UDim2.new(0, 0, 0, 34)
+	label.BackgroundTransparency = 1
+	label.Text = item.name
+	label.TextColor3 = Color3.fromRGB(160, 170, 190)
+	label.Font = Enum.Font.Gotham
+	label.TextSize = 8
+	label.Parent = btnContainer
+
+	btn.MouseButton1Click:Connect(function()
+		switchPage(item.name)
+		for _, b in ipairs(sidebar:GetDescendants()) do
+			if b:IsA("TextButton") then
+				b.TextColor3 = Color3.fromRGB(140, 150, 170)
+			end
+		end
+		btn.TextColor3 = item.highlight or Color3.fromRGB(100, 180, 255)
+	end)
+end
+
+-- Toggle (F2)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.F2 then
+		main.Visible = not main.Visible
+	end
+end)
+
+-- Mobile tap detector
+local openDetector = Instance.new("TextButton")
+openDetector.Size = UDim2.new(0, 70, 0, 50)
+openDetector.Position = UDim2.new(0, 0, 0, 0)
+openDetector.BackgroundTransparency = 1
+openDetector.Text = ""
+openDetector.Parent = screenGui
+
+openDetector.MouseButton1Click:Connect(function()
+	main.Visible = not main.Visible
+end)
+
+print("✅ Ultra Compact Admin Panel Loaded!")
+print("F2 on PC | Tap top-left on Mobile")
