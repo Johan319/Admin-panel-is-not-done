@@ -56,6 +56,7 @@ local bodyVelocity = nil
 local bodyGyro = nil
 local flyConnection = nil
 local currentMoveVector = Vector3.new()
+local verticalVelocity = nil
 
 -- Screen GUI Setup
 local screenGui = Instance.new("ScreenGui")
@@ -151,7 +152,7 @@ local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Size = UDim2.new(0, 32, 0, 32)
 minimizeBtn.Position = UDim2.new(1, -74, 0, 4)
 minimizeBtn.BackgroundTransparency = 1
-minimizeBtn.Text = "−"
+minimizeBtn.Text = "–"
 minimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 minimizeBtn.Font = Enum.Font.GothamBold
 minimizeBtn.TextSize = 20
@@ -358,7 +359,7 @@ local function startFly(speed)
     local moveDirection = Vector3.new()
     
     -- Create a separate BodyVelocity for vertical movement
-    local verticalVelocity = Instance.new("BodyVelocity")
+    verticalVelocity = Instance.new("BodyVelocity")
     verticalVelocity.MaxForce = Vector3.new(0, 100000, 0)
     verticalVelocity.Velocity = Vector3.new(0, 0, 0)
     verticalVelocity.Parent = rootPart
@@ -691,7 +692,7 @@ local function getNumberInput(title, defaultValue, minValue, maxValue, unit, cal
     inputBox.FocusLost:Connect(function(enterPressed) if enterPressed then confirm() end end)
 end
 
--- ====================== ORIGINAL MAIN CONTENT ======================
+-- ====================== MAIN CONTENT ======================
 
 -- Main Content Area
 local mainContent = Instance.new("Frame")
@@ -782,7 +783,7 @@ RunService.Heartbeat:Connect(function()
     uptimeValueLabel.Text = (hours > 0 and hours .. "h " .. minutes .. "m") or (minutes .. "m")
 end)
 
--- Quick Commands Panel
+-- Quick Commands Panel (ONLY ON HOME PAGE)
 local quickPanel = Instance.new("Frame")
 quickPanel.Size = UDim2.new(0.27, 0, 1, -50)
 quickPanel.Position = UDim2.new(0.73, 0, 0, 46)
@@ -897,6 +898,13 @@ local function switchPage(pageName)
     if pages[pageName] then 
         pages[pageName].Visible = true 
     end
+    
+    -- ONLY show quick panel on Home page
+    if pageName == "Home" then
+        quickPanel.Visible = true
+    else
+        quickPanel.Visible = false
+    end
 end
 
 for i, item in ipairs(sidebarItems) do
@@ -928,15 +936,22 @@ for i, item in ipairs(sidebarItems) do
     btn.MouseButton1Click:Connect(function()
         switchPage(item.name)
         for _, b in ipairs(sidebar:GetDescendants()) do
-            if b:IsA("TextButton") then
+            if b:IsA("TextButton") and b ~= btn then
                 b.TextColor3 = Color3.fromRGB(140, 150, 170)
             end
         end
         btn.TextColor3 = item.highlight or Color3.fromRGB(100, 180, 255)
+        
+        -- Make sure quick panel visibility is correct
+        if item.name == "Home" then
+            quickPanel.Visible = true
+        else
+            quickPanel.Visible = false
+        end
     end)
 end
 
--- Additional pages
+-- Additional pages (placeholders)
 for _, name in ipairs({"Players", "Admins", "Cmds", "Logs", "Settings"}) do
     local page = Instance.new("Frame")
     page.Size = UDim2.new(1, 0, 1, 0)
@@ -968,6 +983,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                 minimizedBar.Visible = false
             end
             main.Visible = true
+            -- Reset to Home page and show quick panel when opening
+            switchPage("Home")
+            quickPanel.Visible = true
         end
     end
 end)
@@ -989,6 +1007,9 @@ openDetector.MouseButton1Click:Connect(function()
             minimizedBar.Visible = false
         end
         main.Visible = true
+        -- Reset to Home page and show quick panel when opening
+        switchPage("Home")
+        quickPanel.Visible = true
     end
 end)
 
@@ -1002,4 +1023,6 @@ print("✨ FLY CONTROLS (NO SPINNING!):")
 print("  🖥️ PC: WASD + Space/Ctrl")
 print("  📱 Mobile: Touch controls")
 print("  🛡️ No spinning, no losing control!")
+print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+print("⚡ QUICK COMMANDS ONLY ON HOME PAGE")
 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
